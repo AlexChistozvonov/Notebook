@@ -1,5 +1,7 @@
 package com.example.notebookactivity
 
+import android.content.Intent
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -25,13 +27,15 @@ class EditActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityEditBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        getMyIntents()
     }
 
 
     val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) {
         binding.imMainImage.setImageURI(it)
-        Log.e(s, "sasasasas")
         tempImageUri = it.toString()
+        //contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
     }
 
 
@@ -59,6 +63,11 @@ class EditActivity : AppCompatActivity() {
 
         // изменение картинки
         binding.imButtonEditImage.setOnClickListener {
+
+
+            //val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+
+
             getContent.launch("image/*")
 
         }
@@ -68,15 +77,37 @@ class EditActivity : AppCompatActivity() {
 
             val myTitle = binding.edTitle.text.toString()
             val myDesc = binding.edDesc.text.toString()
-            Log.e(s, "save")
             if (myTitle != "" && myDesc != "") {
                 Log.e(s, "save")
                 myDbManager.insertToDb(myTitle, myDesc, tempImageUri)
+                finish()
 
             }
         }
     }
 
+
+    fun getMyIntents(){
+        val i = intent
+
+        if (i != null){
+            if(i.getStringExtra(MyIntentConstant.I_TITLE_KEY) != null){
+
+                binding.fbAddImage.visibility = View.GONE
+                binding.edTitle.setText(i.getStringExtra(MyIntentConstant.I_TITLE_KEY))
+                binding.edDesc.setText(i.getStringExtra(MyIntentConstant.I_DESC_KEY))
+                if(i.getStringExtra(MyIntentConstant.I_URI_KEY) != "empty"){
+                    Log.d("Log","loggg")
+                    binding.mainImageLayout.visibility = View.VISIBLE
+                    binding.imMainImage.setImageURI(Uri.parse(i.getStringExtra(MyIntentConstant.I_URI_KEY)))
+                    binding.imButtonEditImage.visibility = View.GONE
+                    binding.imButtonDeleteImage.visibility = View.GONE
+
+
+                }
+            }
+        }
+    }
 
     }
 

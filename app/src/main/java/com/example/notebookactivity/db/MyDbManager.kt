@@ -4,9 +4,11 @@ package com.example.notebookactivity.db
 import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
+import android.provider.BaseColumns
 import android.util.Log
+import androidx.core.database.getIntOrNull
 import androidx.core.database.getStringOrNull
-
+import com.example.notebookactivity.ListItem
 
 
 class MyDbManager(context: Context) {
@@ -32,17 +34,32 @@ class MyDbManager(context: Context) {
         Log.e(s,"запись")
     }
 
+    fun removeItemFromDb( id: String){
+        val selection = BaseColumns._ID + "=$id"
+        db?.delete(MyDbNameClass.TABLE_NAME, selection, null)
+    }
+
+
+
     // Считать данные с БД
-    fun readDbData(): ArrayList<String>{
-        val dataList = ArrayList<String>()
+    fun readDbData(): ArrayList<ListItem>{
+        val dataList = ArrayList<ListItem>()
 
         val cursor = db?.query(MyDbNameClass.TABLE_NAME, null, null,null,
             null,null,null,)
 
 
         while(cursor?.moveToNext()!!){
-            val dataText = cursor.getStringOrNull(cursor.getColumnIndex(MyDbNameClass.COLUMN_NAME_TITLE))
-            dataList.add(dataText.toString())
+            val dataTitle = cursor.getStringOrNull(cursor.getColumnIndex(MyDbNameClass.COLUMN_NAME_TITLE))
+            val dataContent = cursor.getStringOrNull(cursor.getColumnIndex(MyDbNameClass.COLUMN_NAME_CONTENT))
+            val dataUri = cursor.getStringOrNull(cursor.getColumnIndex(MyDbNameClass.COLUMN_NAME_IMAGE_URI))
+            val dataId = cursor.getIntOrNull(cursor.getColumnIndex(BaseColumns._ID))
+            val item = ListItem()
+            item.title = dataTitle.toString()
+            item.desc = dataContent.toString()
+            item.uri = dataUri.toString()
+            item.id = dataId!!
+            dataList.add(item)
         }
         cursor.close()
         Log.e(s,"считать")
