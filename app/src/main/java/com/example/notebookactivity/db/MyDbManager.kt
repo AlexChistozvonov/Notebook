@@ -34,18 +34,30 @@ class MyDbManager(context: Context) {
         Log.e(s,"запись")
     }
 
+    // Удаление из БД
     fun removeItemFromDb( id: String){
         val selection = BaseColumns._ID + "=$id"
         db?.delete(MyDbNameClass.TABLE_NAME, selection, null)
     }
 
 
+    fun ubdateItem(title: String, content: String, uri: String, id: Int){
+        val selection = BaseColumns._ID + "=$id"
+        val values = ContentValues().apply {
+            put(MyDbNameClass.COLUMN_NAME_TITLE, title)
+            put(MyDbNameClass.COLUMN_NAME_CONTENT, content)
+            put(MyDbNameClass.COLUMN_NAME_IMAGE_URI, uri)
+        }
+        db?.update(MyDbNameClass.TABLE_NAME, values, selection, null)
+        Log.e(s,"запись")
+    }
+
 
     // Считать данные с БД
-    fun readDbData(): ArrayList<ListItem>{
+    fun readDbData(searchText: String): ArrayList<ListItem>{
         val dataList = ArrayList<ListItem>()
-
-        val cursor = db?.query(MyDbNameClass.TABLE_NAME, null, null,null,
+        val selection = "${MyDbNameClass.COLUMN_NAME_TITLE} like?"
+        val cursor = db?.query(MyDbNameClass.TABLE_NAME, null, selection, arrayOf("%$searchText%"),
             null,null,null,)
 
 

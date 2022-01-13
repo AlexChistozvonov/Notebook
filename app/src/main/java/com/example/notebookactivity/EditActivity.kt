@@ -22,6 +22,8 @@ class EditActivity : AppCompatActivity() {
     val s = "sae"
     var tempImageUri = "empty"
     val myDbManager = MyDbManager(this)
+    var id = 0
+    var isEditState = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,14 +74,24 @@ class EditActivity : AppCompatActivity() {
 
         }
 
+
+        binding.fbEdit.setOnClickListener{
+            binding.edTitle.isEnabled = true
+            binding.edDesc.isEnabled = true
+            binding.fbEdit.visibility = View.GONE
+        }
+
         // сохранение в бд
         binding.fbSave.setOnClickListener {
 
             val myTitle = binding.edTitle.text.toString()
             val myDesc = binding.edDesc.text.toString()
             if (myTitle != "" && myDesc != "") {
-                Log.e(s, "save")
-                myDbManager.insertToDb(myTitle, myDesc, tempImageUri)
+                if(isEditState){
+                    myDbManager.ubdateItem(myTitle, myDesc, tempImageUri, id)
+                } else{
+                    myDbManager.insertToDb(myTitle, myDesc, tempImageUri)
+                }
                 finish()
 
             }
@@ -87,17 +99,23 @@ class EditActivity : AppCompatActivity() {
     }
 
 
-    fun getMyIntents(){
+    fun getMyIntents() {
         val i = intent
+        binding.fbEdit.visibility = View.GONE
 
-        if (i != null){
-            if(i.getStringExtra(MyIntentConstant.I_TITLE_KEY) != null){
+        if (i != null) {
+            if (i.getStringExtra(MyIntentConstant.I_TITLE_KEY) != null) {
 
                 binding.fbAddImage.visibility = View.GONE
                 binding.edTitle.setText(i.getStringExtra(MyIntentConstant.I_TITLE_KEY))
+                isEditState = true
+                binding.edTitle.isEnabled = false
+                binding.edDesc.isEnabled = false
+                binding.fbEdit.visibility = View.VISIBLE
                 binding.edDesc.setText(i.getStringExtra(MyIntentConstant.I_DESC_KEY))
-                if(i.getStringExtra(MyIntentConstant.I_URI_KEY) != "empty"){
-                    Log.d("Log","loggg")
+                id = i.getIntExtra(MyIntentConstant.I_ID_KEY, 0)
+                if (i.getStringExtra(MyIntentConstant.I_URI_KEY) != "empty") {
+
                     binding.mainImageLayout.visibility = View.VISIBLE
                     binding.imMainImage.setImageURI(Uri.parse(i.getStringExtra(MyIntentConstant.I_URI_KEY)))
                     binding.imButtonEditImage.visibility = View.GONE
@@ -109,5 +127,5 @@ class EditActivity : AppCompatActivity() {
         }
     }
 
-    }
+}
 

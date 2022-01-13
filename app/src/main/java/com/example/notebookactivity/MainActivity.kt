@@ -1,18 +1,17 @@
 package com.example.notebookactivity
 
-import android.content.ClipData
+
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import androidx.fragment.app.FragmentTransaction
+import android.widget.SearchView
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.notebookactivity.databinding.ActivityMainBinding
 import com.example.notebookactivity.db.MyDbManager
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,6 +26,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         init()
+        initSearchView()
 
 
         binding.fbNew.setOnClickListener{
@@ -55,10 +55,25 @@ class MainActivity : AppCompatActivity() {
         Log.e(s,"init")
     }
 
+    // поиск
+    fun initSearchView(){
+        binding.searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(p0: String?): Boolean {
+                return true
+            }
+
+            override fun onQueryTextChange(p0: String?): Boolean {
+                val list = myDbManager.readDbData(p0!!)
+                myAdapter.updateAdapter(list)
+                return true
+            }
+        })
+    }
+
     fun fillAdapter(){
         Log.e(s,"filladapter")
 
-        val list = myDbManager.readDbData()
+        val list = myDbManager.readDbData("")
         myAdapter.updateAdapter(list)
         if (list.size > 0){
             binding.tvNoElement.visibility = View.GONE
