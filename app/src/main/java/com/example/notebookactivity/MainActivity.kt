@@ -12,6 +12,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.notebookactivity.databinding.ActivityMainBinding
 import com.example.notebookactivity.db.MyDbManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -19,6 +23,7 @@ class MainActivity : AppCompatActivity() {
     val s = "ss"
     val myDbManager = MyDbManager(this)
     val myAdapter = MyAdapter(ArrayList(), this)
+    private var job: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(android.R.style.Theme)
@@ -43,7 +48,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         myDbManager.openDb()
-        fillAdapter()
+        fillAdapter("")
 
     }
 
@@ -52,7 +57,6 @@ class MainActivity : AppCompatActivity() {
         val swapHelper = getSwapMg()
         swapHelper.attachToRecyclerView(binding.rcView)
         binding.rcView.adapter = myAdapter
-        Log.e(s,"init")
     }
 
     // поиск
@@ -63,23 +67,25 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextChange(p0: String?): Boolean {
-                val list = myDbManager.readDbData(p0!!)
-                myAdapter.updateAdapter(list)
+                fillAdapter(p0!!)
                 return true
             }
         })
     }
 
-    fun fillAdapter(){
-        Log.e(s,"filladapter")
+    private fun fillAdapter(text: String){
 
-        val list = myDbManager.readDbData("")
-        myAdapter.updateAdapter(list)
-        if (list.size > 0){
-            binding.tvNoElement.visibility = View.GONE
-        }
-        else{
-            binding.tvNoElement.visibility = View.VISIBLE
+        job?.cancel()
+        job = CoroutineScope(Dispatchers.Main).launch{
+
+            val list = myDbManager.readDbData(text)
+            myAdapter.updateAdapter(list)
+            if (list.size > 0){
+                binding.tvNoElement.visibility = View.GONE
+            }
+            else{
+                binding.tvNoElement.visibility = View.VISIBLE
+            }
         }
     }
 

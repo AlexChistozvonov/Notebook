@@ -15,7 +15,12 @@ import com.example.notebookactivity.databinding.ActivityEditBinding
 import com.example.notebookactivity.databinding.ActivityMainBinding
 import com.example.notebookactivity.db.MyDbManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.net.URI
+import java.text.SimpleDateFormat
+import java.util.*
 
 class EditActivity : AppCompatActivity() {
     lateinit var binding: ActivityEditBinding
@@ -61,6 +66,7 @@ class EditActivity : AppCompatActivity() {
         binding.imButtonDeleteImage.setOnClickListener {
             binding.mainImageLayout.visibility = View.GONE
             binding.fbAddImage.visibility = View.VISIBLE
+            tempImageUri = "empty"
         }
 
         // изменение картинки
@@ -79,6 +85,11 @@ class EditActivity : AppCompatActivity() {
             binding.edTitle.isEnabled = true
             binding.edDesc.isEnabled = true
             binding.fbEdit.visibility = View.GONE
+            binding.fbAddImage.visibility = View.VISIBLE
+            if(tempImageUri == "empty") return@setOnClickListener
+            binding.imButtonEditImage.visibility = View.VISIBLE
+            binding.imButtonDeleteImage.visibility = View.VISIBLE
+
         }
 
         // сохранение в бд
@@ -87,13 +98,15 @@ class EditActivity : AppCompatActivity() {
             val myTitle = binding.edTitle.text.toString()
             val myDesc = binding.edDesc.text.toString()
             if (myTitle != "" && myDesc != "") {
-                if(isEditState){
-                    myDbManager.ubdateItem(myTitle, myDesc, tempImageUri, id)
-                } else{
-                    myDbManager.insertToDb(myTitle, myDesc, tempImageUri)
-                }
-                finish()
+                CoroutineScope(Dispatchers.Main).launch {
 
+                    if(isEditState){
+                        myDbManager.ubdateItem(myTitle, myDesc, tempImageUri, id, getCurrentTime())
+                    } else{
+                        myDbManager.insertToDb(myTitle, myDesc, tempImageUri, getCurrentTime())
+                    }
+                    finish()
+                }
             }
         }
     }
@@ -117,7 +130,8 @@ class EditActivity : AppCompatActivity() {
                 if (i.getStringExtra(MyIntentConstant.I_URI_KEY) != "empty") {
 
                     binding.mainImageLayout.visibility = View.VISIBLE
-                    binding.imMainImage.setImageURI(Uri.parse(i.getStringExtra(MyIntentConstant.I_URI_KEY)))
+                    tempImageUri = i.getStringExtra(MyIntentConstant.I_URI_KEY)!!
+                    binding.imMainImage.setImageURI(Uri.parse(tempImageUri))
                     binding.imButtonEditImage.visibility = View.GONE
                     binding.imButtonDeleteImage.visibility = View.GONE
 
@@ -127,5 +141,11 @@ class EditActivity : AppCompatActivity() {
         }
     }
 
+    private fun getCurrentTime():String{
+        val time = Calendar.getInstance().time
+        val formatter = SimpleDateFormat("dd-MM-yy kk:mm", Locale.getDefault())
+        val fTime=formatter.format(time)
+        return fTime
+    }
 }
 
